@@ -1,0 +1,8 @@
+@startuml
+ProxyConnection -> ProxyConnection:closeStatements
+ProxyConnection -> PoolEntry: close
+PoolEntry -> HikariPool: recycle
+HikariPool -> ConcurrentBag: recycle
+ConcurrentBag -> ConcurrentBag:requite
+ConcurrentBag -> ConcurrentBag:add bagEntry in handoffQueue
+@enduml
