@@ -1,0 +1,10 @@
+@startuml
+HikariDataSource -> HikariPool: getConnection
+HikariPool -> ConcurrentBag: borrow
+
+ConcurrentBag --> HikariPool: poolEntry
+HikariPool -> ProxyFactory:createProxyConnection
+ProxyFactory -> ProxyFactory:getProxyConnection通过JavaAssist生成
+ProxyFactory --> HikariPool: ProxyConnection
+HikariPool --> HikariDataSource: Connection
+@enduml
