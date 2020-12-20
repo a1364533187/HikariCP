@@ -6,5 +6,5 @@ ConcurrentBag -> PoolEntry: remove
 PoolEntry -> closeConnectionExecutor: Connection
 
 closeConnectionExecutor --> HikariPool:quietlyCloseConnection
-closeConnectionExecutor --> HikariPool:fillPool
+closeConnectionExecutor --> HikariPool:fillPool add by addConnectionExecutor
 @enduml
