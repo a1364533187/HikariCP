@@ -1,0 +1,10 @@
+@startuml
+HikariPool -> ConcurrentBag: closeConnection
+ConcurrentBag -> ConcurrentBag: can remove PoolEntry
+ConcurrentBag -> ConcurrentBag: shareList remove
+ConcurrentBag -> PoolEntry: remove
+PoolEntry -> closeConnectionExecutor: Connection
+
+closeConnectionExecutor --> HikariPool:quietlyCloseConnection
+closeConnectionExecutor --> HikariPool:fillPool
+@enduml
