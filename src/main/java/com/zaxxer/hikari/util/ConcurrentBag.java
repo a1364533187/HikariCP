@@ -100,6 +100,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
       this.handoffQueue = new SynchronousQueue<>(true);
       this.waiters = new AtomicInteger();
       this.sharedList = new CopyOnWriteArrayList<>();
+      //那么什么情况下threadList会是弱引用呢？当 HikariCP 运行在容器中时，会使用弱引用，因为在容器重新部署的时候，可能会导致发成内存泄露，具体大家可以看下#39 的 issue
       if (weakThreadLocals) {
          this.threadList = ThreadLocal.withInitial(() -> new ArrayList<>(16));
       }
@@ -120,6 +121,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
    public T borrow(long timeout, final TimeUnit timeUnit) throws InterruptedException
    {
       // Try the thread-local list first
+      //每个线程会保存自己用过的BagEntry, 是一个list, 这些用过的BagEntry也有可能被其他的
       final List<Object> list = threadList.get();
       for (int i = list.size() - 1; i >= 0; i--) {
          final Object entry = list.remove(i);
@@ -177,6 +179,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
       bagEntry.setState(STATE_NOT_IN_USE);
 
       for (int i = 0; waiters.get() > 0; i++) {
+         //bagEntry 可能被threadList窃取了，状态就不是STATE_NOT_IN_USE了
          if (bagEntry.getState() != STATE_NOT_IN_USE || handoffQueue.offer(bagEntry)) {
             return;
          }
@@ -206,6 +209,7 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
          throw new IllegalStateException("ConcurrentBag has been closed, ignoring add()");
       }
 
+      //bagEntry总仓库
       sharedList.add(bagEntry);
 
       // spin until a thread takes it or none are waiting
