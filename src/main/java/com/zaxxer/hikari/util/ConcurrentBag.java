@@ -167,6 +167,13 @@ public class ConcurrentBag<T extends IConcurrentBagEntry> implements AutoCloseab
 
             timeout = originTimeout - (System.nanoTime() - startScan);
          } while (timeout > 10_000L && synchronizer.waitUntilSequenceExceeded(startSeq, timeout));
+         //这里的循环条件比较复杂
+         // 1. 如果剩余的超时时间, 大于10_000纳秒
+         // 2. startSeq的数量, 即空闲连接数超过循环之前的数量
+         // 3. 没有超过超时时间timeout
+         // 满足以上 3 个条件才会继续循环, 否则阻塞线程, 直到满足以上条件
+         // 如果一直等到timeout超时时间用完都没有满足条件, 结束阻塞, 往下走
+         // 有可能会动态改变的条件, 只有startSeq数量改变, 是②处添加的创建连接请求
       }
       finally {
          waiters.decrementAndGet();
